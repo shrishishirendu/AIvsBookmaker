@@ -21,8 +21,13 @@ PAYLOAD_COLUMNS = [
 ]
 
 # --- Postgres ---------------------------------------------------------------
+# IMPORTANT: asyncpg cannot run multiple statements in a single execute(), so
+# these are kept as SEPARATE statements and the migration runs them one at a
+# time. (A single CREATE FUNCTION with a $$-quoted body is one statement and is
+# fine; the issue is only multiple top-level statements in one string.)
 
-POSTGRES_UP = """
+POSTGRES_UP_STATEMENTS = [
+    """
 CREATE OR REPLACE FUNCTION reject_locked_prediction_update()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -40,18 +45,20 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trg_reject_locked_prediction_update ON predictions;
+""",
+    "DROP TRIGGER IF EXISTS trg_reject_locked_prediction_update ON predictions;",
+    """
 CREATE TRIGGER trg_reject_locked_prediction_update
     BEFORE UPDATE ON predictions
     FOR EACH ROW
     EXECUTE FUNCTION reject_locked_prediction_update();
-"""
+""",
+]
 
-POSTGRES_DOWN = """
-DROP TRIGGER IF EXISTS trg_reject_locked_prediction_update ON predictions;
-DROP FUNCTION IF EXISTS reject_locked_prediction_update();
-"""
+POSTGRES_DOWN_STATEMENTS = [
+    "DROP TRIGGER IF EXISTS trg_reject_locked_prediction_update ON predictions;",
+    "DROP FUNCTION IF EXISTS reject_locked_prediction_update();",
+]
 
 # --- SQLite -----------------------------------------------------------------
 # SQLite supports "BEFORE UPDATE OF <cols>" with a WHEN clause and RAISE(ABORT).

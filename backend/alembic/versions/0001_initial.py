@@ -9,7 +9,7 @@ from __future__ import annotations
 from alembic import op
 import sqlalchemy as sa
 
-from app.db_triggers import POSTGRES_UP, POSTGRES_DOWN
+from app.db_triggers import POSTGRES_UP_STATEMENTS, POSTGRES_DOWN_STATEMENTS
 
 revision = "0001"
 down_revision = None
@@ -112,13 +112,16 @@ def upgrade() -> None:
 
     # DB-level lock enforcement (Postgres). On SQLite this is installed at
     # runtime by app.db_triggers.install_sqlite_trigger (demo/tests).
+    # Run each statement separately — asyncpg rejects multi-statement execute().
     if op.get_bind().dialect.name == "postgresql":
-        op.execute(POSTGRES_UP)
+        for stmt in POSTGRES_UP_STATEMENTS:
+            op.execute(stmt)
 
 
 def downgrade() -> None:
     if op.get_bind().dialect.name == "postgresql":
-        op.execute(POSTGRES_DOWN)
+        for stmt in POSTGRES_DOWN_STATEMENTS:
+            op.execute(stmt)
     op.drop_table("standings")
     op.drop_table("content")
     op.drop_table("predictions")
