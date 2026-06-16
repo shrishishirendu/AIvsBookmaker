@@ -1,6 +1,7 @@
-# Pinned to Debian 12 "bookworm" — Playwright's --with-deps fails on Debian 13
-# "trixie" (renamed font packages), which plain python:3.12-slim now points to.
-FROM python:3.12-slim-bookworm
+# Microsoft's official Playwright image: Chromium + all OS deps are PREINSTALLED,
+# so there is no fragile `playwright install --with-deps` apt step to fail on.
+# The tag matches our pinned playwright==1.49.1 so the bundled browser lines up.
+FROM mcr.microsoft.com/playwright/python:v1.49.1-jammy
 
 WORKDIR /app
 
@@ -8,10 +9,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 COPY requirements.txt .
-# Install deps + the Chromium browser (with OS deps) so the worker can render
-# the social cards to PNG inside the container.
-RUN pip install --no-cache-dir -r requirements.txt \
-    && playwright install --with-deps chromium
+# Browsers are already in the base image; just install the Python deps.
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
