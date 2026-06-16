@@ -64,14 +64,20 @@ async def publish_match(
         publisher = PUBLISHERS.get(row.platform)
         if publisher is None:
             continue
+        img_path = _image_path(match_id, row.template)
+        # Instagram fetches the image by URL, so expose the /static card via the
+        # backend's own public URL (media_base_url) when configured.
+        image_url = None
+        if settings.media_base_url and img_path:
+            image_url = f"{settings.media_base_url.rstrip('/')}/static/cards/{match_id}/{row.template}.png"
         job = PostJob(
             content_id=row.id,
             match_id=match_id,
             template=row.template,
             platform=row.platform,
             caption=_with_cta(row.caption, row.template),
-            image_path=_image_path(match_id, row.template),
-            image_url=None,  # set to a public URL once cards are hosted publicly (IG)
+            image_path=img_path,
+            image_url=image_url,
         )
         res = await publisher.publish(job)
         row.publish_status = res.status

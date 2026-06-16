@@ -82,6 +82,10 @@ class Settings(BaseSettings):
     publish_dry_run: bool = True
     # Public base URL used in captions for the pull-back loop (verify / play links).
     public_base_url: str = "http://localhost:3000"
+    # This backend's OWN public URL (where /static cards are served). Instagram's
+    # Graph API fetches the image server-side, so it needs a public URL — set this
+    # to the Railway domain to enable IG posting. e.g. https://...up.railway.app
+    media_base_url: str | None = None
     # LinkedIn
     linkedin_access_token: str | None = None
     linkedin_author_urn: str | None = None  # e.g. urn:li:organization:123
