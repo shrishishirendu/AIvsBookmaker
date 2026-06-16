@@ -1,4 +1,6 @@
-FROM python:3.12-slim
+# Pinned to Debian 12 "bookworm" — Playwright's --with-deps fails on Debian 13
+# "trixie" (renamed font packages), which plain python:3.12-slim now points to.
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
