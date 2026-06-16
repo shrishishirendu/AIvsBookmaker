@@ -1,0 +1,6 @@
+{
+  "Argentina": { "fifa_rank": 1, "elo": 2143, "gf": 14, "ga": 3, "last5": "WWWDW" },
+  "Algeria":   { "fifa_rank": 43, "elo": 1721, "gf": 8,  "ga": 6, "last5": "WLWDL" },
+  "France":    { "fifa_rank": 2, "elo": 2098, "gf": 12, "ga": 5, "last5": "WWDWW" },
+  "Japan":     { "fifa_rank": 18, "elo": 1879, "gf": 10, "ga": 4, "last5": "WWWWL" }
+}

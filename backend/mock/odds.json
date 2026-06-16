@@ -1,0 +1,18 @@
+[
+  {
+    "fixture": 1001,
+    "books": [
+      { "book": "Pinnacle", "home": 1.30, "draw": 5.20, "away": 9.50 },
+      { "book": "Bet365", "home": 1.33, "draw": 5.00, "away": 9.00 },
+      { "book": "William Hill", "home": 1.31, "draw": 5.10, "away": 9.25 }
+    ]
+  },
+  {
+    "fixture": 1002,
+    "books": [
+      { "book": "Pinnacle", "home": 1.62, "draw": 3.90, "away": 5.40 },
+      { "book": "Bet365", "home": 1.66, "draw": 3.80, "away": 5.20 },
+      { "book": "William Hill", "home": 1.64, "draw": 3.85, "away": 5.30 }
+    ]
+  }
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1001,
+    "team_a": "Argentina",
+    "team_b": "Algeria",
+    "team_a_id": 1,
+    "team_b_id": 2,
+    "stage": "Group A",
+    "kickoff_utc": "2026-06-13T19:00:00Z",
+    "venue": "Estadio Azteca, Mexico City",
+    "status": "NS"
+  },
+  {
+    "id": 1002,
+    "team_a": "France",
+    "team_b": "Japan",
+    "team_a_id": 3,
+    "team_b_id": 4,
+    "stage": "Group C",
+    "kickoff_utc": "2026-06-14T22:00:00Z",
+    "venue": "MetLife Stadium, New Jersey",
+    "status": "NS"
+  }
+]

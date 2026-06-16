@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./.venv/Scripts/python.exe -m pip install --quiet celery==5.4.0)",
+      "Bash(./.venv/Scripts/python.exe -m pytest -q)",
+      "Bash(export NEXT_PUBLIC_API_BASE=\"http://localhost:8000\")",
+      "Bash(npm run *)",
+      "PowerShell(foreach \\($port in 8000,3000\\) { $c = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { taskkill /PID $_ /F 2>&1 | Out-Null } } }; Start-Sleep -Milliseconds 800; \"ports cleared\")"
+    ]
+  }
+}
