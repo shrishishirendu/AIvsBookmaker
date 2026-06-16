@@ -5,7 +5,7 @@ public `/verify/{prediction_id}` endpoint that IS the trust product.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,6 +27,16 @@ from ..services.results import ingest_result
 from ..services.seed import seed_mock_data
 
 router = APIRouter()
+
+
+def require_admin(x_admin_key: str | None = Header(default=None)) -> None:
+    """Gate the admin/mutating endpoints. No-op when ADMIN_API_KEY is unset
+    (local dev); enforced the moment it's configured (public deployments)."""
+    if settings.admin_api_key and x_admin_key != settings.admin_api_key:
+        raise HTTPException(status_code=401, detail="admin key required")
+
+
+admin = Depends(require_admin)
 
 
 class ResultIn(BaseModel):
@@ -54,7 +64,7 @@ def _cost_guard() -> CostGuard:
     return CostGuard(_redis)
 
 
-@router.post("/seed", tags=["admin"])
+@router.post("/seed", tags=["admin"], dependencies=[admin])
 async def seed(session: AsyncSession = Depends(get_session)):
     result = await seed_mock_data(session, _football())
     await session.commit()
@@ -105,7 +115,7 @@ async def match_predictions(match_id: int, session: AsyncSession = Depends(get_s
     return out
 
 
-@router.post("/matches/{match_id}/predict", tags=["flow"])
+@router.post("/matches/{match_id}/predict", tags=["flow"], dependencies=[admin])
 async def predict(match_id: int, session: AsyncSession = Depends(get_session)):
     try:
         result = await svc.run_prediction_round(
@@ -119,7 +129,7 @@ async def predict(match_id: int, session: AsyncSession = Depends(get_session)):
     return result
 
 
-@router.post("/matches/{match_id}/lock", tags=["flow"])
+@router.post("/matches/{match_id}/lock", tags=["flow"], dependencies=[admin])
 async def lock(match_id: int, session: AsyncSession = Depends(get_session)):
     try:
         result = await svc.lock_match(session, match_id)
@@ -129,7 +139,7 @@ async def lock(match_id: int, session: AsyncSession = Depends(get_session)):
     return result
 
 
-@router.post("/matches/{match_id}/reveal", tags=["flow"])
+@router.post("/matches/{match_id}/reveal", tags=["flow"], dependencies=[admin])
 async def reveal(match_id: int, session: AsyncSession = Depends(get_session)):
     try:
         result = await svc.reveal_match(session, match_id)
@@ -167,7 +177,7 @@ async def user_prediction(
     return out
 
 
-@router.post("/matches/{match_id}/result", tags=["flow"])
+@router.post("/matches/{match_id}/result", tags=["flow"], dependencies=[admin])
 async def result(match_id: int, body: ResultIn, session: AsyncSession = Depends(get_session)):
     """Ingest the final score, score every prediction, and refresh the leaderboard."""
     try:
@@ -179,7 +189,7 @@ async def result(match_id: int, body: ResultIn, session: AsyncSession = Depends(
     return out
 
 
-@router.post("/matches/{match_id}/fetch-result", tags=["flow"])
+@router.post("/matches/{match_id}/fetch-result", tags=["flow"], dependencies=[admin])
 async def fetch_result(match_id: int, session: AsyncSession = Depends(get_session)):
     """Pull the REAL final score from API-Football and score everyone.
 
@@ -215,7 +225,7 @@ async def leaderboard(scope: str = "overall", session: AsyncSession = Depends(ge
         raise HTTPException(status_code=400, detail=str(exc))
 
 
-@router.post("/standings/recompute", tags=["leaderboard"])
+@router.post("/standings/recompute", tags=["leaderboard"], dependencies=[admin])
 async def recompute(session: AsyncSession = Depends(get_session)):
     out = await standings_svc.recompute_standings(session)
     await session.commit()
@@ -238,7 +248,7 @@ async def highlights(session: AsyncSession = Depends(get_session)):
 
 # --- publishing / distribution (Phase 4) -----------------------------------
 
-@router.post("/matches/{match_id}/publish", tags=["publishing"])
+@router.post("/matches/{match_id}/publish", tags=["publishing"], dependencies=[admin])
 async def publish(match_id: int, session: AsyncSession = Depends(get_session)):
     """Publish all generated cards for a match to the target platforms.
 
@@ -256,7 +266,7 @@ async def publish_queue(session: AsyncSession = Depends(get_session)):
 
 # --- content engine (Phase 1) ----------------------------------------------
 
-@router.post("/matches/{match_id}/content", tags=["content"])
+@router.post("/matches/{match_id}/content", tags=["content"], dependencies=[admin])
 async def generate_content(
     match_id: int,
     render_png: bool = True,

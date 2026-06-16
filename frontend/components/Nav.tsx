@@ -7,7 +7,7 @@ const LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/highlights", label: "Highlights" },
   { href: "/play", label: "Play" },
-  { href: "/admin", label: "Admin" },
+  // /admin is operator-only (protected by ADMIN_API_KEY) — not linked publicly
 ];
 
 export default function Nav() {

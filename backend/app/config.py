@@ -48,7 +48,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://fifa:fifa@localhost:5432/fifa"
     redis_url: str = "redis://localhost:6379/0"
     # Comma-separated list of allowed CORS origins for the frontend.
+    # Set to "*" to allow any origin (fine for this public read-mostly API).
     allowed_origins: str = "http://localhost:3000"
+    # Protects the admin/mutating endpoints (predict, publish, result, seed…).
+    # When set, those endpoints require the X-Admin-Key header. Public read
+    # endpoints + the user-prediction "play" endpoint stay open. Unset = open
+    # (local dev convenience); MUST be set in any public deployment.
+    admin_api_key: str | None = None
 
     @field_validator("database_url", mode="after")
     @classmethod
