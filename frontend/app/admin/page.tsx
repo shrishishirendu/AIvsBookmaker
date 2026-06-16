@@ -7,6 +7,7 @@ import {
   generateContent,
   getContent,
   fetchRealResult,
+  getAdminKey,
   ingestResult,
   listMatches,
   lockMatch,
@@ -16,6 +17,7 @@ import {
   revealMatch,
   runPredict,
   seedAll,
+  setAdminKey,
 } from "@/lib/api";
 
 function fmtDate(iso: string): string {
@@ -53,6 +55,12 @@ export default function AdminPage() {
   const [flash, setFlash] = useState<string | null>(null);
   const [scoreA, setScoreA] = useState(2);
   const [scoreB, setScoreB] = useState(1);
+  const [keyInput, setKeyInput] = useState("");
+  const [keySaved, setKeySaved] = useState(false);
+
+  useEffect(() => {
+    setKeyInput(getAdminKey());
+  }, []);
 
   const refreshMatches = useCallback(async () => {
     try {
@@ -108,6 +116,34 @@ export default function AdminPage() {
           <h1 className="mt-1 text-2xl font-black">Admin — run a match lifecycle</h1>
         </div>
         <a href="/" className="text-sm text-neutral-400 hover:text-white">← home</a>
+      </div>
+
+      {/* operator key — required to run lifecycle actions on the live API */}
+      <div className="mt-4 rounded-lg border border-amber-900/50 bg-amber-950/20 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-amber-300/90">🔑 Operator key</span>
+          <input
+            type="password"
+            value={keyInput}
+            onChange={(e) => setKeyInput(e.target.value)}
+            placeholder="paste ADMIN_API_KEY"
+            className="min-w-[200px] flex-1 rounded bg-neutral-800 px-3 py-1.5 text-sm"
+          />
+          <button
+            onClick={() => {
+              setAdminKey(keyInput.trim());
+              setKeySaved(true);
+              setTimeout(() => setKeySaved(false), 1500);
+            }}
+            className="rounded bg-amber-700 px-3 py-1.5 text-sm font-medium hover:bg-amber-600"
+          >
+            {keySaved ? "✓ saved" : "Save"}
+          </button>
+        </div>
+        <p className="mt-1.5 text-xs text-neutral-500">
+          Required for the lifecycle actions on the live API. Stored only in this browser;
+          never sent to anyone but your own backend.
+        </p>
       </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[380px_1fr]">

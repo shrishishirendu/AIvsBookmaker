@@ -2,6 +2,30 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
+// --- operator admin key (sent as X-Admin-Key on mutating calls only) ---
+const ADMIN_KEY_STORAGE = "de_admin_key";
+let _adminKey: string | null = null;
+
+export function setAdminKey(k: string): void {
+  _adminKey = k || null;
+  if (typeof window !== "undefined") {
+    if (k) localStorage.setItem(ADMIN_KEY_STORAGE, k);
+    else localStorage.removeItem(ADMIN_KEY_STORAGE);
+  }
+}
+
+export function getAdminKey(): string {
+  if (_adminKey === null && typeof window !== "undefined") {
+    _adminKey = localStorage.getItem(ADMIN_KEY_STORAGE);
+  }
+  return _adminKey ?? "";
+}
+
+function adminHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const k = getAdminKey();
+  return k ? { ...extra, "X-Admin-Key": k } : extra;
+}
+
 export type VerifyResponse = {
   prediction_id: number;
   match_id: number;
@@ -83,10 +107,11 @@ export const getContent = (id: number) =>
 export const generateContent = (id: number, renderPng = true) =>
   fetch(`${API_BASE}/matches/${id}/content?render_png=${renderPng}`, {
     method: "POST",
+    headers: adminHeaders(),
   }).then((r) => json<{ match_id: number; generated: ContentItem[] }>(r));
 
 export const seedAll = () =>
-  fetch(`${API_BASE}/seed`, { method: "POST" }).then((r) => json(r));
+  fetch(`${API_BASE}/seed`, { method: "POST", headers: adminHeaders() }).then((r) => json(r));
 
 export type PredictResult = {
   match_id: number;
@@ -95,29 +120,29 @@ export type PredictResult = {
 };
 
 export const runPredict = (id: number) =>
-  fetch(`${API_BASE}/matches/${id}/predict`, { method: "POST" }).then((r) =>
+  fetch(`${API_BASE}/matches/${id}/predict`, { method: "POST", headers: adminHeaders() }).then((r) =>
     json<PredictResult>(r),
   );
 
 export const lockMatch = (id: number) =>
-  fetch(`${API_BASE}/matches/${id}/lock`, { method: "POST" }).then((r) =>
+  fetch(`${API_BASE}/matches/${id}/lock`, { method: "POST", headers: adminHeaders() }).then((r) =>
     json(r),
   );
 
 export const revealMatch = (id: number) =>
-  fetch(`${API_BASE}/matches/${id}/reveal`, { method: "POST" }).then((r) =>
+  fetch(`${API_BASE}/matches/${id}/reveal`, { method: "POST", headers: adminHeaders() }).then((r) =>
     json(r),
   );
 
 export const ingestResult = (id: number, score_a: number, score_b: number) =>
   fetch(`${API_BASE}/matches/${id}/result`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ score_a, score_b }),
   }).then((r) => json<{ match_id: number; final: string }>(r));
 
 export const fetchRealResult = (id: number) =>
-  fetch(`${API_BASE}/matches/${id}/fetch-result`, { method: "POST" }).then((r) =>
+  fetch(`${API_BASE}/matches/${id}/fetch-result`, { method: "POST", headers: adminHeaders() }).then((r) =>
     json<{ match_id: number; final: string }>(r),
   );
 
@@ -149,7 +174,7 @@ export const getHighlights = () =>
   fetch(`${API_BASE}/highlights`, { cache: "no-store" }).then((r) => json<Highlights>(r));
 
 export const publishMatch = (id: number) =>
-  fetch(`${API_BASE}/matches/${id}/publish`, { method: "POST" }).then((r) =>
+  fetch(`${API_BASE}/matches/${id}/publish`, { method: "POST", headers: adminHeaders() }).then((r) =>
     json<{ match_id: number; dry_run: boolean; posted: number; total: number }>(r),
   );
 
