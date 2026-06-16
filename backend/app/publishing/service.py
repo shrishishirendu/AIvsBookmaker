@@ -33,11 +33,12 @@ def _now() -> datetime:
 
 def _with_cta(caption: str, template: str) -> str:
     base = settings.public_base_url.rstrip("/")
+    # Lead every post with the play hook + the public-site link (the funnel).
+    lead = f"🏆 Play along — can YOU out-predict 5 AIs at the FIFA World Cup 2026? Free 👉 {base}"
+    parts = [lead, caption]
     if template == "receipt":
-        cta = f"🔎 Verify every pick: {base}/leaderboard\n🎯 Beat the AIs: {base}/play"
-    else:
-        cta = f"🎯 Think you can beat the AIs? {base}/play"
-    return f"{caption}\n\n{cta}"
+        parts.append(f"🔎 Verify every prediction & see the live table 👉 {base}")
+    return "\n\n".join(parts)
 
 
 def _image_path(match_id: int, template: str) -> str | None:
